@@ -11,7 +11,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
 import com.packtpub.libgdx.canyonbunny.util.CameraHelper;
 
-public class WorldController extends InputAdapter {
+public class WorldController {
 
 	private static final String TAG = WorldController.class.getName();
 	public Sprite[] testSprites;
@@ -22,45 +22,11 @@ public class WorldController extends InputAdapter {
 	}
 
 	private void init() {
-		Gdx.input.setInputProcessor(this);
 		initTestObjects();
 	}
 
 	public void update(float deltaTime) {
-		handleDebugInput(deltaTime);
 		updateTestObjects(deltaTime);
-	}
-
-	@Override
-	public boolean keyUp(int keycode) {
-		if (keycode == Keys.R) {
-			init();
-			Gdx.app.debug(TAG, "Game world resetted.");
-		} else if (keycode == Keys.SPACE) {
-			// move to next sprite
-			selectedSprite = (selectedSprite + 1) % testSprites.length;
-			// set camera target to current sprite
-
-			Gdx.app.debug(TAG, "Sprite #" + selectedSprite + " selected");
-		} 
-
-		return false;
-	}
-
-	private void handleDebugInput(float deltaTime) {
-		if (Gdx.app.getType() != ApplicationType.Desktop)
-			return;
-
-		float sprMoveSpeed = 5 * deltaTime;
-		if (Gdx.input.isKeyPressed(Keys.A))
-			moveSelectedSprite(-sprMoveSpeed, 0.0f);
-		if (Gdx.input.isKeyPressed(Keys.D))
-			moveSelectedSprite(sprMoveSpeed, 0.0f);
-		if (Gdx.input.isKeyPressed(Keys.W))
-			moveSelectedSprite(0.0f, sprMoveSpeed);
-		if (Gdx.input.isKeyPressed(Keys.S))
-			moveSelectedSprite(0.0f, -sprMoveSpeed);
-
 	}
 
 	private void moveSelectedSprite(float x, float y) {
