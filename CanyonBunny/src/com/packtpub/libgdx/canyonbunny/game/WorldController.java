@@ -6,16 +6,16 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.MathUtils;
 import com.packtpub.libgdx.canyonbunny.util.CameraHelper;
+import com.packtpub.libgdx.canyonbunny.util.Constants;
 
 public class WorldController extends InputAdapter {
 
 	private static final String TAG = WorldController.class.getName();
-	public Sprite[] testSprites;
-	public int selectedSprite;
+	public CameraHelper cameraHelper;
+	public Level level;
+	public int lives;
+	public int score;
 
 	public WorldController() {
 		init();
@@ -23,12 +23,19 @@ public class WorldController extends InputAdapter {
 
 	private void init() {
 		Gdx.input.setInputProcessor(this);
-		initTestObjects();
+		cameraHelper = new CameraHelper();
+		lives = Constants.LIVES_START;
+		initLevel();
+	}
+
+	private void initLevel() {
+		score = 0;
+		level = new Level(Constants.LEVEL_01);
 	}
 
 	public void update(float deltaTime) {
 		handleDebugInput(deltaTime);
-		updateTestObjects(deltaTime);
+		cameraHelper.update(deltaTime);
 	}
 
 	@Override
@@ -36,13 +43,7 @@ public class WorldController extends InputAdapter {
 		if (keycode == Keys.R) {
 			init();
 			Gdx.app.debug(TAG, "Game world resetted.");
-		} else if (keycode == Keys.SPACE) {
-			// move to next sprite
-			selectedSprite = (selectedSprite + 1) % testSprites.length;
-			// set camera target to current sprite
-
-			Gdx.app.debug(TAG, "Sprite #" + selectedSprite + " selected");
-		} 
+		}
 
 		return false;
 	}
@@ -51,44 +52,33 @@ public class WorldController extends InputAdapter {
 		if (Gdx.app.getType() != ApplicationType.Desktop)
 			return;
 
-		float sprMoveSpeed = 5 * deltaTime;
-		if (Gdx.input.isKeyPressed(Keys.A))
-			moveSelectedSprite(-sprMoveSpeed, 0.0f);
-		if (Gdx.input.isKeyPressed(Keys.D))
-			moveSelectedSprite(sprMoveSpeed, 0.0f);
-		if (Gdx.input.isKeyPressed(Keys.W))
-			moveSelectedSprite(0.0f, sprMoveSpeed);
-		if (Gdx.input.isKeyPressed(Keys.S))
-			moveSelectedSprite(0.0f, -sprMoveSpeed);
+		// Camera Controls (move)
+		float camMoveSpeed = 5 * deltaTime;
+		float camMoveSpeedAccelerationFactor = 5;
+		if (Gdx.input.isKeyPressed(Keys.SHIFT_LEFT))
+			camMoveSpeed *= camMoveSpeedAccelerationFactor;
+		if (Gdx.input.isKeyPressed(Keys.LEFT))
+			moveCamera(-camMoveSpeed, 0);
+		if (Gdx.input.isKeyPressed(Keys.RIGHT))
+			moveCamera(camMoveSpeed, 0);
+		if (Gdx.input.isKeyPressed(Keys.UP))
+			moveCamera(0, camMoveSpeed);
+		if (Gdx.input.isKeyPressed(Keys.DOWN))
+			moveCamera(0, -camMoveSpeed);
+		if (Gdx.input.isKeyPressed(Keys.BACKSPACE))
+			cameraHelper.setPosition(0, 0);
 
-	}
-
-	private void moveSelectedSprite(float x, float y) {
-		testSprites[selectedSprite].translate(x, y);
-	}
-
-	private void initTestObjects() {
-		testSprites = new Sprite[5];
-		int width = 32;
-		int height = 32;
-		Pixmap pixmap = createProceduralPixmap(width, height);
-		Texture texture = new Texture(pixmap);
-		for (int i = 0; i < testSprites.length; i++) {
-			Sprite spr = new Sprite(texture);
-			spr.setSize(1, 1);
-			spr.setOrigin(spr.getWidth() / 2.0f, spr.getHeight() / 2.0f);
-			float randomX = MathUtils.random(-2.0f, 2.0f);
-			float randomY = MathUtils.random(-2.0f, 2.0f);
-			spr.setPosition(randomX, randomY);
-			testSprites[i] = spr;
-		}
-		selectedSprite = 0;
-	}
-
-	private void updateTestObjects(float deltaTime) {
-		float rotation = testSprites[selectedSprite].getRotation();
-		rotation = (rotation + 90 * deltaTime) % 360;
-		testSprites[selectedSprite].setRotation(rotation);
+		// Camera Controls (zoom)
+		float camZoomSpeed = 1 * deltaTime;
+		float camZoomSpeedAccelerationFactor = 5;
+		if (Gdx.input.isKeyPressed(Keys.SHIFT_LEFT))
+			camZoomSpeed *= camZoomSpeedAccelerationFactor;
+		if (Gdx.input.isKeyPressed(Keys.COMMA))
+			cameraHelper.addZoom(camZoomSpeed);
+		if (Gdx.input.isKeyPressed(Keys.PERIOD))
+			cameraHelper.addZoom(-camZoomSpeed);
+		if (Gdx.input.isKeyPressed(Keys.SLASH))
+			cameraHelper.setZoom(1);
 	}
 
 	private Pixmap createProceduralPixmap(int width, int height) {
@@ -105,4 +95,9 @@ public class WorldController extends InputAdapter {
 		return pixmap;
 	}
 
+	private void moveCamera(float x, float y) {
+		x += cameraHelper.getPosition().x;
+		y += cameraHelper.getPosition().y;
+		cameraHelper.setPosition(x, y);
+	}
 }
