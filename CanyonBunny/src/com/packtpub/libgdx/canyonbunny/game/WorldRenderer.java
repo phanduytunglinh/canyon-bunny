@@ -23,14 +23,6 @@ public class WorldRenderer implements Disposable {
 		renderGui(batch);
 	}
 
-	private void renderWorld(SpriteBatch batch) {
-		worldController.cameraHelper.applyTo(camera);
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		worldController.level.render(batch);
-		batch.end();
-	}
-
 	public void resize(int width, int height) {
 		camera.viewportWidth = Constants.VIEWPORT_HEIGHT * (width / height);
 		camera.update();
@@ -57,7 +49,15 @@ public class WorldRenderer implements Disposable {
 		cameraGUI.setToOrtho(true); // flip y-axis
 		cameraGUI.update();
 	}
-
+	
+	private void renderWorld(SpriteBatch batch) {
+		worldController.cameraHelper.applyTo(camera);
+		batch.setProjectionMatrix(camera.combined);
+		batch.begin();
+		worldController.level.render(batch);
+		batch.end();
+	}
+	
 	private void renderGui(SpriteBatch batch) {
 		batch.setProjectionMatrix(cameraGUI.combined);
 		batch.begin();
